@@ -32,6 +32,16 @@ export const loginAsync = createAsyncAction(
   LOGIN_FAILURE
 )<Auth, any, AxiosError>();
 
+function registerSaga(action: ReturnType<typeof registerAsync.request>) {
+  try {
+  } catch (err) {}
+}
+
+function loginSaga(action: ReturnType<typeof loginAsync.request>) {
+  try {
+  } catch (err) {}
+}
+
 export function* authSaga() {
   yield takeLatest(REGISTER, registerSaga);
   yield takeLatest(LOGIN, loginSaga);

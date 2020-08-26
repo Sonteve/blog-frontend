@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, ChangeEvent, FormEvent } from "react";
 import styled from "styled-components/macro";
 import Button from "../common/Button";
 import palette from "../../lib/styles/palette";
@@ -21,47 +21,58 @@ const textMap: TextMap = {
 
 interface AuthFormProps {
   type?: string | undefined;
+  form?: any;
+  onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
+  onSubmit?: (e: FormEvent<HTMLFormElement>) => void;
 }
 
-function AuthForm({ type }: AuthFormProps) {
+function AuthForm({ type, form, onChange, onSubmit }: AuthFormProps) {
   useEffect(() => {
     console.log("type", type);
   }, [type]);
   return (
-    <AuthFormBlock>
-      <h3>{type && textMap[type]}</h3>
-      <form>
-        <StyledInput
-          autoComplete="username"
-          name="username"
-          placeholder="아이디"
-        />
-        <StyledInput
-          autoComplete="new-password"
-          name="password"
-          placeholder="비밀번호"
-          type="password"
-        />
-        {type === "register" && (
+    form && (
+      <AuthFormBlock>
+        <h3>{type && textMap[type]}</h3>
+        <form onSubmit={onSubmit}>
+          <StyledInput
+            autoComplete="username"
+            name="username"
+            placeholder="아이디"
+            onChange={onChange}
+            value={form.username && form.username}
+          />
           <StyledInput
             autoComplete="new-password"
-            name="passwordConfirm"
-            placeholder="비밀번호 확인"
+            name="password"
+            placeholder="비밀번호"
             type="password"
+            onChange={onChange}
+            value={form.password}
           />
-        )}
-        <Button cyan fullWidth style={{ marginTop: "1rem" }}>
-          {type && textMap[type]}
-        </Button>
-      </form>
-      <Footer>
-        {type === "login" ? (
-          <Link to="/register">회원가입</Link>
-        ) : (
-          <Link to="/login">로그인</Link>
-        )}
-      </Footer>
-    </AuthFormBlock>
+          {type === "register" && (
+            <StyledInput
+              autoComplete="new-password"
+              name="passwordConfirm"
+              placeholder="비밀번호 확인"
+              type="password"
+              onChange={onChange}
+              value={form.passwordConfirm}
+            />
+          )}
+          <Button cyan fullWidth style={{ marginTop: "1rem" }}>
+            {type && textMap[type]}
+          </Button>
+        </form>
+        <Footer>
+          {type === "login" ? (
+            <Link to="/register">회원가입</Link>
+          ) : (
+            <Link to="/login">로그인</Link>
+          )}
+        </Footer>
+      </AuthFormBlock>
+    )
   );
 }
 

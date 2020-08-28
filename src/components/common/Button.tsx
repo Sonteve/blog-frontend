@@ -1,18 +1,37 @@
 import React, { ReactChild } from "react";
 import styled, { css } from "styled-components";
 import palette from "../../lib/styles/palette";
+import { useHistory, useParams } from "react-router-dom";
 
 interface ButtonProps {
   cyan?: boolean;
   fullWidth?: boolean;
   children?: ReactChild;
   style?: any;
+  to?: string;
+  onClick?: () => void;
 }
 
 interface SCprops {
   fullWidth?: boolean;
   cyan?: boolean;
+  to?: string;
+  onClick: any;
 }
+
+const Button = (props: ButtonProps) => {
+  const history = useHistory();
+  const onClick = (e: MouseEvent) => {
+    if (props.to) {
+      history.push(props.to);
+    }
+  };
+  return (
+    <StyledButton onClick={props.onClick ? props.onClick : onClick} {...props}>
+      {props.children}
+    </StyledButton>
+  );
+};
 
 const StyledButton = styled.button<SCprops>`
   border: none;
@@ -47,9 +66,5 @@ const StyledButton = styled.button<SCprops>`
       }
     `}
 `;
-
-const Button = (props: ButtonProps) => {
-  return <StyledButton {...props}>{props.children}</StyledButton>;
-};
 
 export default Button;

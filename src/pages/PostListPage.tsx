@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useParams } from "react-router-dom";
-import Button from "../components/common/Button";
+import HeaderContainer from "../components/common/HeaderContainer";
 
 interface ParamTypes {
   username: string;
@@ -13,9 +13,8 @@ function PostListPage() {
   }, [param]);
   return (
     <div>
-      {param.username && param.username}
-      리스트
-      <Button>버튼</Button>
+      <HeaderContainer />
+      <div>안녕하세요</div>
     </div>
   );
 }

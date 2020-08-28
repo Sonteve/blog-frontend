@@ -5,7 +5,7 @@ import {
   ActionType,
   createAsyncAction,
 } from "typesafe-actions";
-import { takeLatest } from "redux-saga/effects";
+import { takeLatest, call, put } from "redux-saga/effects";
 import { login, register, check, Auth } from "../lib/api/auth";
 import { AxiosError } from "axios";
 
@@ -32,14 +32,36 @@ export const loginAsync = createAsyncAction(
   LOGIN_FAILURE
 )<Auth, any, AxiosError>();
 
-function registerSaga(action: ReturnType<typeof registerAsync.request>) {
+function* registerSaga(action: ReturnType<typeof registerAsync.request>) {
   try {
-  } catch (err) {}
+    const response = yield call(register, action.payload);
+    yield put({
+      type: REGISTER_SUCCESS,
+      payload: response,
+    });
+  } catch (error) {
+    yield put({
+      type: REGISTER_FAILURE,
+      payload: error,
+      error: true,
+    });
+  }
 }
 
-function loginSaga(action: ReturnType<typeof loginAsync.request>) {
+function* loginSaga(action: ReturnType<typeof loginAsync.request>) {
   try {
-  } catch (err) {}
+    const response = yield call(login, action.payload);
+    yield put({
+      type: LOGIN_SUCCESS,
+      payload: response,
+    });
+  } catch (error) {
+    yield put({
+      type: LOGIN_FAILURE,
+      payload: error,
+      error: true,
+    });
+  }
 }
 
 export function* authSaga() {
@@ -53,6 +75,15 @@ interface ChangeField {
   value: any;
 }
 
+export interface AuthData {
+  data: {
+    _id: string;
+    username: string;
+    __v: number;
+  };
+  status: number;
+  statusText: string;
+}
 export const changeField = createAction(
   CHANGE_FIELD,
   ({ form, key, value }: ChangeField) => ({
@@ -67,44 +98,85 @@ export const initializeForm = createAction(
   (form: string) => form
 )<string>();
 
-type AuthActions = ActionType<typeof changeField | typeof initializeForm>;
+type AuthActions = ActionType<
+  | typeof changeField
+  | typeof initializeForm
+  | typeof registerAsync
+  | typeof loginAsync
+>;
 
 interface AuthState {
   [keyProps: string]: any;
   login: {
     username: string;
     password: string;
+    loading: null | boolean;
   };
   register: {
     username: string;
     password: string;
     passwordConfirm: string;
+    loading: null | boolean;
   };
+  auth: null | AuthData;
+  authError: null | AxiosError;
 }
 const initialState: AuthState = {
   login: {
     username: "",
     password: "",
+    loading: null,
   },
   register: {
     username: "",
     password: "",
     passwordConfirm: "",
+    loading: null,
   },
+  auth: null,
+  authError: null,
 };
 
 const auth = createReducer<AuthState, AuthActions>(initialState, {
   [CHANGE_FIELD]: (state, { payload: { form, key, value } }) =>
     produce(state, (draft) => {
-      if (form === "") {
-        draft[key] = value;
-      } else {
-        draft[form][key] = value;
-      }
+      draft[form][key] = value;
     }),
-  [INITIALIZE_FORM]: (state) => ({
+  [INITIALIZE_FORM]: (state, { payload: form }) => ({
     ...initialState,
+    [form]: initialState[form],
+    authError: null,
   }),
+  [REGISTER]: (state) =>
+    produce(state, (draft) => {
+      draft.register.loading = true;
+    }),
+  [REGISTER_SUCCESS]: (state, { payload }) =>
+    produce(state, (draft) => {
+      draft.register.loading = false;
+      draft.authError = null;
+      draft.auth = payload;
+    }),
+  [REGISTER_FAILURE]: (state, { payload: error }) =>
+    produce(state, (draft) => {
+      draft.register.loading = false;
+      draft.authError = error;
+    }),
+  [LOGIN]: (state) =>
+    produce(state, (draft) => {
+      draft.login.loading = true;
+    }),
+  [LOGIN_SUCCESS]: (state, { payload }) =>
+    produce(state, (draft) => {
+      draft.login.loading = false;
+      draft.authError = null;
+      draft.auth = payload;
+    }),
+  [LOGIN_FAILURE]: (state, { payload: error }) =>
+    produce(state, (draft) => {
+      draft.login.loading = false;
+      draft.authError = error;
+    }),
 });
 
 export default auth;
